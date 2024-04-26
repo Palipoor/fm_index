@@ -84,6 +84,7 @@ class RankDS():
         cum_rank = 0
         self.large_cum_ranks = []
         self.small_cum_ranks = []
+        self.extra_ranks = []
         for i in range(0,self.n, self.large_block_size):
             self.large_cum_ranks.append(cum_rank)
             rel_cum_rank = 0
@@ -92,6 +93,13 @@ class RankDS():
                 rel_cum_rank = rel_cum_rank + self.sequence[i+j:i+j + self.small_block_size].count('1') 
             cum_rank = cum_rank + self.sequence[i:i+self.large_block_size].count('1')
         
+        if self.n % self.large_block_size != 0:
+            self.extra_ranks = [0] * (self.n % self.large_block_size)
+            self.extra_ranks[0] = cum_rank
+            for i in range(1, self.n % self.large_block_size):
+                self.extra_ranks[i] = self.extra_ranks[i-1] + int(self.sequence[self.n - i - 1])
+
+
         self.lookup_table = []
         for i in range(0, self.n, self.large_block_size):
             for j in range(0, self.large_block_size, self.small_block_size):
@@ -101,10 +109,13 @@ class RankDS():
     def rank(self, c, i):
         if i == 0:
             return 0
-        block_ind = i // self.large_block_size
-        s_block = (i % self.large_block_size) // self.small_block_size
-        s_block_ind = floor((self.small_per_large * block_ind) + s_block)
-        rank = self.large_cum_ranks[block_ind] + self.small_cum_ranks[s_block_ind] + self.lookup_table[s_block_ind][i % self.small_block_size]
+        if i > self.large_block_size * self.num_large_blocks:
+            rank = self.extra_ranks[i % self.large_block_size]
+        else:
+            block_ind = i // self.large_block_size
+            s_block = (i % self.large_block_size) // self.small_block_size
+            s_block_ind = floor((self.small_per_large * block_ind) + s_block)
+            rank = self.large_cum_ranks[block_ind] + self.small_cum_ranks[s_block_ind] + self.lookup_table[s_block_ind][i % self.small_block_size]
         if c == '0':
             return i - rank
         else:
