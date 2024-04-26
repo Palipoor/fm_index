@@ -13,7 +13,6 @@ def main(args):
     input_file = args.input
     sequence = read_file(input_file)
     index = FMIndex(sequence)
-
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='FM Index')
