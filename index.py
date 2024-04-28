@@ -94,10 +94,10 @@ class RankDS():
         self.sentinel_index = sentinel_index
         self.log_n = floor(log2(self.n))
         self.small_block_size = self.log_n // 2
-        self.large_block_size = self.log_n ** 2
+        self.large_block_size = min(self.n,self.log_n ** 2)
         self.small_per_large = self.large_block_size // self.small_block_size
         self.num_large_blocks = self.n // self.large_block_size
-        self.num_small_blocks = self.n // self.small_block_size
+        self.num_small_blocks = self.small_per_large * self.num_large_blocks
         self._build_array()
     
     def _build_array(self):
@@ -114,10 +114,12 @@ class RankDS():
             cum_rank = cum_rank + self.sequence[i:i+self.large_block_size].count(ba.bitarray('1'))
         if self.n % self.large_block_size != 0:
             self.extra_ranks = [0] * (self.n % self.large_block_size)
-            self.extra_ranks[0] = self.small_cum_ranks[-1] + int(self.sequence[self.num_large_blocks * self.large_block_size-1])
+            cursor = self.small_block_size * (self.num_small_blocks -1 )
+            self.extra_ranks[0] = self.small_cum_ranks[-1] + self.sequence[cursor:cursor + self.small_block_size+1].count(ba.bitarray('1'))
+            cursor = cursor + self.small_block_size + 1
             for i in range(1, len(self.extra_ranks)):
-                self.extra_ranks[i] = self.extra_ranks[i-1] + int(self.sequence[self.n - i - 1])
-
+                self.extra_ranks[i] = self.extra_ranks[i-1] + self.sequence[cursor]
+                cursor = cursor + 1
         self.lookup_table = []
         for i in range(0, self.large_block_size * self.num_large_blocks, self.large_block_size):
             for j in range(0, self.large_block_size, self.small_block_size):
@@ -125,6 +127,7 @@ class RankDS():
                 self.lookup_table.append([small_block[:k].count(ba.bitarray('1')) for k in range(1, self.small_block_size+1)])
 
     def rank(self, c, i):
+        # breakpoint()
         if c == '$':
                 if i >= self.sentinel_index:
                     return 1

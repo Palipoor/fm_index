@@ -27,3 +27,23 @@ def test_rank(fm_index):
 
 def test_inverse(fm_index):
     assert fm_index.invert_bwt() == seq
+
+def test_case():
+    fm = FMIndex('10111') # 111$10  
+    assert fm.bwt == bitarray.bitarray('111010')
+    assert fm.rank_array.rank('1',0) == 1
+    assert fm.rank_array.rank('1',1) == 2
+    assert fm.rank_array.rank('1',2) == 3
+    assert fm.rank_array.rank('1',3) == 3
+    assert fm.rank_array.rank('1',4) == 4
+    assert fm.rank_array.rank('0',0) == 0
+    assert fm.rank_array.rank('0',3) == 0
+    assert fm.rank_array.rank('0',5) == 1
+    assert fm.invert_bwt() == '10111'
+
+def test_many_seqs():
+    # numbers 1 to 1000 in binary
+    seqs = [bin(i)[2:] for i in range(1, 1001)]
+    for s in seqs:
+        fm = FMIndex(s)
+        assert fm.invert_bwt() == s, f"Failed for {s}"
