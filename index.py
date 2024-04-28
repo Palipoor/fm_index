@@ -1,6 +1,7 @@
 import pydivsufsort as sa
 import bitarray as ba
 from math import log2, floor
+from tqdm import tqdm
 
 class FMIndex():
     def __init__(self, seq):
@@ -10,9 +11,13 @@ class FMIndex():
             raise ValueError('Sequence must be at least 4 characters long')
         self.c_array = {'$': 0, 0: 1, 1: self.sequence.count('0') + 1}
         self.log_n = floor(log2(self.n))
+        print('Building Suffix Array')
         self._build_suffix_array()
+        print('Building BWT')
         self._build_bwt()
+        print('Building Rank Array')
         self._build_rank_array()
+        print('Sampling Suffix Array')
         self._sample_sa()
 
     def _build_suffix_array(self):
@@ -57,7 +62,7 @@ class FMIndex():
             sa = self.sa[i]
             if sa % self.log_n == 0:
                 self.sampled_sa[i] = sa
-        # del self.sa
+        del self.sa
 
     def _get_lf(self, i):
         x = self._get_bwt(i)
@@ -72,10 +77,11 @@ class FMIndex():
         return j + s
 
     def invert_bwt(self):
+        print('Inverting BWT')
         seq = ''
         p = 0
         c = self.bwt[p]
-        for i in range(self.n):
+        for i in tqdm(range(self.n)):
             seq = str(c) + seq
             p = self._get_lf(p)
             c = self.bwt[p]
@@ -84,14 +90,17 @@ class FMIndex():
     def get_occurrences(self, pattern):
         m = len(pattern)
         s = 0
-        e = self.n
+        e = len(self.bwt) -1
         for i in range(m - 1, -1, -1):
             c = pattern[i]
-            s = self.c_array[int(c)] + self.rank(c,s-1)
-            e = self.c_array[int(c)] + self.rank(c,e)
-            if s >= e:
+            if s <=0:
+                s = self.c_array[int(c)]
+            else:
+                s = self.c_array[int(c)] + self.rank(c,s-1)
+            e = self.c_array[int(c)] + self.rank(c,e) -1 
+            if s > e:
                 return []
-        occ = [self.get_sa(i) for i in range(s, e)]
+        occ = [self.get_sa(i) for i in range(s, e + 1)]
         return sorted(occ)
 
 class RankDS():
