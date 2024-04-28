@@ -42,8 +42,7 @@ def test_case():
     assert fm.invert_bwt() == '10111'
 
 def test_many_seqs():
-    # numbers 1 to 1000 in binary
-    seqs = [bin(i)[2:] for i in range(1, 1001)]
+    seqs = [bin(i)[2:] for i in range(10, 100000)]
     for s in seqs:
         fm = FMIndex(s)
         assert fm.invert_bwt() == s, f"Failed for {s}"

@@ -6,6 +6,8 @@ class FMIndex():
     def __init__(self, seq):
         self.sequence = seq
         self.n = len(self.sequence)
+        if self.n < 4:
+            raise ValueError('Sequence must be at least 4 characters long')
         self.c_array = {'$': 0, 0: 1, 1: self.sequence.count('0') + 1}
         self.log_n = floor(log2(self.n))
         self._build_suffix_array()
