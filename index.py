@@ -22,6 +22,10 @@ class FMIndex():
         self.rank_array = RankDS(self.bwt, self.sentinel_index)
         
     def rank(self, c, i):
+        if i < 0:
+            return 0
+        if i > self.n:
+            i = self.n
         return self.rank_array.rank(c, i)
     
     def _build_bwt(self):
@@ -49,9 +53,10 @@ class FMIndex():
     
     def _sample_sa(self):
         self.sampled_sa = {}
-        for i in range(0, self.n, self.log_n):
-            self.sampled_sa[i] = self.sa[i]
-    
+        for i in range(0, self.n):
+            sa = self.sa[i]
+            if sa % self.log_n == 0:
+                self.sampled_sa[i] = sa
         # del self.sa
 
     def _get_lf(self, i):
@@ -60,7 +65,7 @@ class FMIndex():
     
     def get_sa(self, i):
         s = 0
-        while not self.sampled_sa.get(i):
+        while self.sampled_sa.get(i, -1) == -1:
             i = self._get_lf(i)
             s += 1
         j = self.sampled_sa[i]
@@ -78,16 +83,16 @@ class FMIndex():
 
     def get_occurrences(self, pattern):
         m = len(pattern)
-        s = 1
+        s = 0
         e = self.n
         for i in range(m - 1, -1, -1):
             c = pattern[i]
-            s = self.c_array[int(c)] + self.rank_array[int(c)][s - 1] + 1
-            e = self.c_array[int(c)] + self.rank_array[int(c)][e]
-            if s > e:
+            s = self.c_array[int(c)] + self.rank(c,s-1)
+            e = self.c_array[int(c)] + self.rank(c,e)
+            if s >= e:
                 return []
-        occ = [self.get_sa(i) for i in range(s, e+1)]
-        return occ
+        occ = [self.get_sa(i) for i in range(s, e)]
+        return sorted(occ)
 
 class RankDS():
     def __init__(self, sequence, sentinel_index = -1):
@@ -127,9 +132,9 @@ class RankDS():
             for j in range(0, self.large_block_size, self.small_block_size):
                 small_block = self.sequence[i+j:i+j+self.small_block_size]
                 self.lookup_table.append([small_block[:k].count(ba.bitarray('1')) for k in range(1, self.small_block_size+1)])
+        del self.sequence
 
     def rank(self, c, i):
-        # breakpoint()
         if c == '$':
                 if i >= self.sentinel_index:
                     return 1
