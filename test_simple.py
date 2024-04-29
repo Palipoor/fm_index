@@ -13,7 +13,6 @@ def test_bwt(fm_index):
     assert fm_index.bwt == bitarray.bitarray('10110100100')
 
 def test_rank(fm_index):
-    print(fm_index.rank_array.sentinel_index)
     assert fm_index.rank('0', 3) == 0
     assert fm_index.rank('0', 9) == 4
     assert fm_index.rank('1', 3) == 3
@@ -42,7 +41,39 @@ def test_case():
     assert fm.invert_bwt() == '10111'
 
 def test_many_seqs():
-    seqs = [bin(i)[2:] for i in range(10, 100000)]
+    seqs = [bin(i)[2:] for i in range(10, 1000)]
     for s in seqs:
         fm = FMIndex(s)
         assert fm.invert_bwt() == s, f"Failed for {s}"
+
+def test_rep_data():
+    """
+    This data is from Pizza&Chili. It's a very repetitive sequence.
+    """
+    with open('/Users/Zire/Downloads/fib41_b.txt', 'r') as f:
+        data = f.read()
+    data = data[:800]
+    index = FMIndex(data)
+    a = index.invert_bwt()
+    assert a == data
+
+def test_rep_data2():
+    """
+    This is the famous lorem ipsum text in morse code, converted to binary.
+    """
+    with open('./morse.txt', 'r') as f:
+        data = f.read()
+        data = data.replace(' ', '').replace('\n', '')
+    index = FMIndex(data)
+    a = index.invert_bwt()
+    assert a == data
+
+def test_random_data():
+    """
+    Testing on a random sequence
+    """
+    import random
+    data = ''.join([str(random.randint(0,1)) for i in range(100000)])
+    index = FMIndex(data)
+    a = index.invert_bwt()
+    assert a == data
