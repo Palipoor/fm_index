@@ -68,8 +68,8 @@ class FMIndex():
         """
         if i < 0:
             return 0
-        if i >= self.n:
-            i = self.n-1
+        if i > self.n:
+            i = self.n
         return self.rank_array.rank(c, i)
     
     def _build_bwt(self):
@@ -165,10 +165,11 @@ class RankDS():
         lookup_table (list): The lookup table. This is used to compute the rank of a character in a small block in O(1) time.
     """
     def __init__(self, sequence, sentinel_index = -1):
-
         self.sequence = sequence
-        self.n = len(sequence)
         self.sentinel_index = sentinel_index
+        self.n = len(self.sequence)
+        self.n = 2 ** (self.n.bit_length())
+        self.sequence = self.sequence + ba.bitarray('0' * (self.n - len(self.sequence)))
         self.log_n = floor(log2(self.n))
         self.small_block_size = self.log_n // 2
         self.large_block_size = min(self.n,self.log_n ** 2)
@@ -178,14 +179,6 @@ class RankDS():
         self._build_array()
     
     def _build_array(self):
-        self.n = 2 ** (self.n.bit_length())
-        self.sequence = self.sequence + ba.bitarray('0' * (self.n - len(self.sequence)))
-        self.log_n = floor(log2(self.n))
-        self.small_block_size = self.log_n // 2
-        self.large_block_size = min(self.n,self.log_n ** 2)
-        self.small_per_large = self.large_block_size // self.small_block_size
-        self.num_large_blocks = self.n // self.large_block_size
-        self.num_small_blocks = self.small_per_large * self.num_large_blocks
 
         cum_rank = 0
         self.large_cum_ranks = []
@@ -222,7 +215,7 @@ class RankDS():
         else:
             block_ind = i // self.large_block_size
             s_block = (i % self.large_block_size) // self.small_block_size
-            s_block_ind = floor((self.small_per_large * block_ind) + s_block)
+            s_block_ind = (self.small_per_large * block_ind) + s_block
             rank = self.large_cum_ranks[block_ind] + self.small_cum_ranks[s_block_ind] + self.lookup_table[s_block_ind][i % self.small_block_size]
         if c == '0':
             if i >= self.sentinel_index:

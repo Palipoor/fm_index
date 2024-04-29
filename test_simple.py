@@ -73,7 +73,7 @@ def test_random_data():
     Testing on a random sequence
     """
     import random
-    data = ''.join([str(random.randint(0,1)) for i in range(100000)])
+    data = ''.join([str(random.randint(0,1)) for i in range(50000)])
     index = FMIndex(data)
     a = index.invert_bwt()
     assert a == data

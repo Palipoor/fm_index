@@ -9,7 +9,6 @@ def random_binary(length):
 
 def main(args):
     binary_string = random_binary(args.length)
-    size_in_bytes = sys.getsizeof(binary_string)
     index = FMIndex(binary_string)
     start = time.time()
     random_patterns = [random_binary(random.randint(1, 50)) for _ in range(args.queries)]
