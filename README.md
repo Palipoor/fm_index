@@ -32,3 +32,7 @@ The implementation is in `class RankDS`. It allows for O(n) bits space and O(1) 
 4. #### Reducing the space used by suffix array by only storing a sample and deleting the rest. 
 The function `get_sa` computes suffix array at any index `i` in O(log n) time.
 
+
+## How to use
+
+After installing the packages in `requirements.txt`, you can follow the example in `example.ipynb` to run the code.
