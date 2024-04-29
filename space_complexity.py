@@ -1,8 +1,6 @@
 import argparse
 from index import FMIndex
 from pympler import asizeof
-from functools import partial
-from matplotlib import pyplot as plt
 import sys
 
 def main(args):
